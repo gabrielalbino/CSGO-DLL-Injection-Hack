@@ -17,7 +17,6 @@ namespace RCS {
 
 				Math::NormalizeAngles(vFinal);
 				Math::ClampAngles(vFinal);
-				Utils::ConsolePrint("%f\t%f\n", vFinal.yaw, vFinal.pitch);
 				g_EngineClient->SetViewAngles(vFinal);
 
 				vOldPunch = vNewPunch;

@@ -18,22 +18,24 @@ namespace Glow {
 				continue;
 
 			if (entity->GetClientClass()->m_ClassID == ClassId_CCSPlayer) {
-
 				entity->m_bShouldGlow() = true;
 				if (entity->m_iTeamNum() != g_LocalPlayer->m_iTeamNum()) {
-					color = new Color(1.f, 0.f, 0.f, 1.f);
+					glowObject.m_flRed = 1.f;
+					glowObject.m_flGreen =0.f;
+					glowObject.m_flBlue = 0.f;
+					glowObject.m_flAlpha = 1.f;
+					glowObject.m_bRenderWhenOccluded = true;
+					glowObject.m_bRenderWhenUnoccluded = false;
 				}
 				else if (entity->m_iTeamNum() == g_LocalPlayer->m_iTeamNum()) {
-					color = new Color(0.f, 0.f, 1.f, 1.f);
+					glowObject.m_flRed = 0.f;
+					glowObject.m_flGreen = 0.f;
+					glowObject.m_flBlue = 1.f;
+					glowObject.m_flAlpha = 1.f;
+					glowObject.m_bRenderWhenOccluded = true;
+					glowObject.m_bRenderWhenUnoccluded = false;
 				}
-				glowObject.m_flRed = color->r();
-				glowObject.m_flGreen = color->b();
-				glowObject.m_flBlue = color->g();
-				glowObject.m_flAlpha = color->a();
-				glowObject.m_bRenderWhenOccluded = true;
-				glowObject.m_bRenderWhenUnoccluded = false;
 			}
-
 		}
 	}
 	

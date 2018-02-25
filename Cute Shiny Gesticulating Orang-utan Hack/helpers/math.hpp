@@ -9,6 +9,8 @@
 
 namespace Math
 {
+	float DegToRad(float deg);
+	float GetFOV(QAngle viewAngles, Vector EyePos, Vector Target);
     void NormalizeAngles(QAngle& angles);
     void ClampAngles(QAngle& angles);
     void VectorTransform(const Vector& in1, const matrix3x4_t& in2, Vector& out);

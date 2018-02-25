@@ -1,7 +1,21 @@
 #include "math.hpp"
+#include "../valve_sdk/csgostructs.hpp"
+#include "utils.hpp"
 
 namespace Math
 {
+	float DegToRad(float deg) {
+		return (deg * 3.14159265359) / 180.f;
+	}
+
+	float GetFOV(QAngle viewAngles, Vector EyePos, Vector Target) {
+		QAngle newAngle = CalcAngle(EyePos, Target);
+		float pitch = sin(DegToRad(viewAngles.pitch - newAngle.pitch)) * EyePos.DistTo(Target);
+		float yaw = sin(DegToRad(viewAngles.yaw - newAngle.yaw)) * EyePos.DistTo(Target);
+
+		return sqrt(powf(pitch, 2.0) + powf(yaw, 2.0));
+	}
+
     void NormalizeAngles(QAngle& angles)
     {
         for(auto i = 0; i < 3; i++) {
@@ -125,10 +139,14 @@ namespace Math
 		QAngle angles;
 		double delta[3] = { (src[0] - dst[0]), (src[1] - dst[1]), (src[2] - dst[2]) };
 		double hyp = sqrt(delta[0] * delta[0] + delta[1] * delta[1]);
-		angles[0] = (float)(asinf(delta[2] / hyp) * 57.295779513082f);
-		angles[1] = (float)(atanf(delta[1] / delta[0]) * 57.295779513082f);
+		angles[0] = (float)(asinf(delta[2] / hyp) * 57.295779513082f) - g_LocalPlayer->m_viewPunchAngle().pitch*2.f; //y asinf	
+		angles[1] = (float)(atanf(delta[1] / delta[0]) * 57.295779513082f) - g_LocalPlayer->m_viewPunchAngle().yaw*2.f; //x
 		angles[2] = 0.0f;
-		if (delta[0] >= 0.0) { angles[1] += 180.0f; }
+
+		if (delta[0] >= 0.0)
+		{
+			angles[1] += 180.0f;
+		}
 		return angles;
 	}
 }

@@ -17,20 +17,33 @@ LPTHREAD_START_ROUTINE WINAPI startHack() {
 
 	hooks.Hook();
 
-	do {
+	for (;true;) {
 		if (GetAsyncKeyState(VK_F1) & 0x1) {
-			rcsActive = !rcsActive;
-			Utils::ConsolePrint("RCS: %d\n", rcsActive);
-		}
-		if (GetAsyncKeyState(VK_F2) & 0x1) {
 			aimAssistActive = !aimAssistActive;
+			if (aimAssistActive) {
+				violentAim = false;
+			}
 			Utils::ConsolePrint("AimAssist: %d\n", aimAssistActive);
+			Utils::ConsolePrint("ViolentAim: %d\n\n", violentAim);
 		}
-		if (GetAsyncKeyState(VK_F3) & 0x1) {
-			triggerBotActive = !triggerBotActive;
-			Utils::ConsolePrint("TriggerBot: %d\n", triggerBotActive);
+
+		if (GetAsyncKeyState(VK_F2) & 0x1) {
+			violentAim = !violentAim;
+			if (violentAim) {
+				aimAssistActive = false;
+			}
+			Utils::ConsolePrint("AimAssist: %d\n", aimAssistActive);
+			Utils::ConsolePrint("ViolentAim: %d\n\n", violentAim);
 		}
-	} while (true);
+		if (GetAsyncKeyState(VK_F3) & 0x3) {
+			triggerBot = !triggerBot;
+			if (triggerBot) {
+				violentAim = false;
+			}
+			Utils::ConsolePrint("TriggerBot: %d\n", triggerBot);
+		}
+	}
+
 	return 0;
 }
 BOOL WINAPI DllMain(HINSTANCE hinstDLL,  DWORD fdwReason, LPVOID lpReserved) 

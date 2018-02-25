@@ -1,4 +1,6 @@
 #pragma once
+#include <Windows.h>
+#include "helpers\utils.hpp"
 class CVMT
 {
 public:
