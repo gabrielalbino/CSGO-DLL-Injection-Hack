@@ -55,6 +55,7 @@ bool __stdcall HookedCreateMove(float SampleTime, CUserCmd* UserCmd)
 				AimAssist::violentAim(UserCmd);
 			}
 			Glow::glowESP(UserCmd);
+			AimAssist::triggerbot(UserCmd);
 		}
 
 		return false;

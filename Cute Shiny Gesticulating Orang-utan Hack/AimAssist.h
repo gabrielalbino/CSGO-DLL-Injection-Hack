@@ -36,6 +36,125 @@ namespace AimAssist{
 		return tr.hit_entity == player || tr.fraction > 0.97f;
 	}
 
+	void inline SinCos(float radians, float *sine, float *cosine)
+	{
+		*sine = sin(radians);
+		*cosine = cos(radians);
+	}
+
+	enum
+	{
+		PITCH = 0,	// up / down
+		YAW,		// left / right
+		ROLL		// fall over
+	};
+
+	void AngleVectors(const QAngle &angles, Vector *forward, Vector *right, Vector *up)
+	{
+		float sr, sp, sy, cr, cp, cy;
+
+		SinCos(DEG2RAD(angles[YAW]), &sy, &cy);
+		SinCos(DEG2RAD(angles[PITCH]), &sp, &cp);
+		SinCos(DEG2RAD(angles[ROLL]), &sr, &cr);
+
+		if (forward)
+		{
+			forward->x = cp*cy;
+			forward->y = cp*sy;
+			forward->z = -sp;
+		}
+
+		if (right)
+		{
+			right->x = (-1 * sr*sp*cy + -1 * cr*-sy);
+			right->y = (-1 * sr*sp*sy + -1 * cr*cy);
+			right->z = -1 * sr*cp;
+		}
+
+		if (up)
+		{
+			up->x = (cr*sp*cy + -sr*-sy);
+			up->y = (cr*sp*sy + -sr*cy);
+			up->z = cr*cp;
+		}
+	}
+	C_BaseEntity* getTargetUnderCrosshair(CUserCmd* cmd, bool enemiesOnly, bool visibleOnly, trace_t* trace)
+	{
+		Utils::ConsolePrint("Getting target\n");
+		Vector vEnd;
+		auto view = cmd->viewangles;
+
+		trace_t tr;
+		Ray_t ray;
+
+		CTraceFilter filter;
+		filter.pSkip = g_LocalPlayer;
+
+		AngleVectors(view, &vEnd, nullptr, nullptr);
+
+		vEnd = vEnd * 8192.0f + g_LocalPlayer->GetEyePos();
+		Utils::ConsolePrint("vEnd = %f %f %f\n", vEnd.x, vEnd.y, vEnd.z);
+		ray.Init(g_LocalPlayer->GetEyePos(), vEnd);
+		g_EngineTrace->TraceRay(ray, CONTENTS_SOLID | CONTENTS_GRATE | CONTENTS_HITBOX, &filter, &tr);
+		Utils::ConsolePrint("tr.Hit_Entity: %p\n", tr.hit_entity);
+		if (!tr.hit_entity) {
+			return nullptr;
+		}
+		Utils::ConsolePrint("Enemy on xhair!\n", tr.hit_entity);
+		if (tr.hit_entity->GetClientClass()->m_ClassID == ClassId_CCSPlayer) {
+			Utils::ConsolePrint("Is CCSPlayer!\n", tr.hit_entity);
+			if (tr.hit_entity->GetBaseEntity()->m_iTeamNum() == g_LocalPlayer->m_iTeamNum() && enemiesOnly)
+				return nullptr;
+			if (tr.hitgroup <= 7 && tr.hitgroup > 0)
+			{
+				if (trace) {
+					trace->endpos = tr.endpos;
+					trace->hitgroup = tr.hitgroup;
+				}
+				return (C_BasePlayer*)tr.hit_entity;
+			}
+			else
+				return nullptr;
+		}
+		Utils::ConsolePrint("Is not CCSPlayer!\n", tr.hit_entity);
+	}
+
+	void triggerbot(CUserCmd* cmd)
+	{
+
+		if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+			Utils::ConsolePrint("Calling triggerbot");
+			C_BaseEntity* target = nullptr;
+			auto bShoot = false;
+			auto localPlayerWep = g_LocalPlayer->m_hActiveWeapon();
+			if (!localPlayerWep)return;
+			auto maxdist = localPlayerWep->GetCSWeaponData()->flRange;//as far as a bullet can travel
+
+			trace_t tr;
+			if ((target = getTargetUnderCrosshair(cmd, false, true, &tr)))
+			{
+				Utils::ConsolePrint("Shooting target!\n", tr.hit_entity);
+				auto vecToTarget = tr.endpos - g_LocalPlayer->GetEyePos();
+				if (tr.hitgroup > 0 && tr.hitgroup <= 3)
+					bShoot = true;
+
+				if (vecToTarget.Length() < maxdist && bShoot)
+				{
+					static auto bFlip = false;
+
+					if (localPlayerWep->m_flNextPrimaryAttack() < g_GlobalVars->curtime)
+					{
+						cmd->buttons |= IN_ATTACK;
+					}
+					else
+					{
+						cmd->buttons &= ~IN_ATTACK;
+					}
+				}
+			}
+		}
+	}
+
 	void AimAtTarget(CUserCmd* UserCmd) {
 		if (CanSeePlayer(BestEntity, 8)) {
 			Vector BonePos;
